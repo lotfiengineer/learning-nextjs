@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import schema from "../schema";
+import prisma from "@/prisma/client";
 
-export function GET(
+export async function GET(
   request: NextRequest,
   {
     params,
   }: {
-    params: { id: number };
+    params: { id: string };
   }
 ) {
-  if (params.id > 10)
+  const product = await prisma.product.findUnique({
+    where: { id: parseInt(params.id) },
+  });
+
+  if (!product)
     return NextResponse.json(
       {
         error: "Product not found",
@@ -17,7 +22,7 @@ export function GET(
       { status: 400 }
     );
 
-  return NextResponse.json({ id: 1, name: "Cheese", price: 5.99 });
+  return NextResponse.json(product);
 }
 
 export async function PUT(
@@ -25,7 +30,7 @@ export async function PUT(
   {
     params: { id },
   }: {
-    params: { id: number };
+    params: { id: string };
   }
 ) {
   const body = await request.json();
@@ -34,8 +39,20 @@ export async function PUT(
   if (!validation.success)
     return NextResponse.json(validation.error.errors, { status: 400 });
 
-  if (id > 10)
+  const product = await prisma.product.findUnique({
+    where: { id: parseInt(id) },
+  });
+
+  if (!product)
     return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
+  await prisma.product.update({
+    where: { id: product.id },
+    data: {
+      name: body.name,
+      price: body.price,
+    }
+  });
 
   return NextResponse.json({ id: id, name: body.name, price: body.price });
 }

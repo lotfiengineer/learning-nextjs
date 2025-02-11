@@ -5,17 +5,13 @@ import { prisma } from "@/prisma/client";
 // export function GET(request: NextRequest, {params}: { id: number }) {
 export async function GET(
   request: NextRequest,
-  {
-    params,
-  }: {
-    params: { id: string };
-  }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Fetch data from a db
   // If not found, return 404
   // Else return data
   const user = await prisma.user.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id: (await params).id },
   });
 
   if (!user)
@@ -26,7 +22,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params: { id } }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Validate the request body
   // If invalid, return 400
@@ -42,7 +38,7 @@ export async function PUT(
     return NextResponse.json(validation.error.errors, { status: 400 });
 
   const user = await prisma.user.findUnique({
-    where: { id: parseInt(id) },
+    where: { id: (await params).id },
   });
 
   if (!user)
@@ -61,14 +57,14 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params: { id } }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Fetch user from db
   // if not found, return 404
   // delete the user
   // return 200
   const user = await prisma.user.findUnique({
-    where: { id: parseInt(id) },
+    where: { id: (await params).id },
   });
 
   if (!user)
